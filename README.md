@@ -60,3 +60,12 @@ $ ./cycle_gan.recipe
 ```
 
 Now you have ASR training script ('ASR.train.script'), which contains the converted features.
+
+## Result
+With [this ASR model](https://github.com/Kohei-Matsuura/LAS), PERs are as below.  
+(The modeling unit is phone.)
+
+|method|PER (%)|
+|:---|:---|
+|Baseline|44.0|
+|VC-based Adaptation|25.9|
