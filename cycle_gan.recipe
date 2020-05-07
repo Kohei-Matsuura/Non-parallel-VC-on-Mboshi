@@ -1,0 +1,40 @@
+#!/bin/bash -eu
+# Following this script, you can train CycleGAN with Mboshi dataset
+# About Mboshi dataset > preprocess.recipe
+
+SAVE_DIR=save/cycle_gan
+
+skippable_mkdir (){
+set +e
+mkdir -p ${1}
+set -e
+}
+
+DATA_ROOT=mboshi
+
+echo Making training scripts...
+skippable_mkdir ${DATA_ROOT}/cycle_gan
+cat ${DATA_ROOT}/train.lmfbs | grep martial > ${DATA_ROOT}/cycle_gan/tmp.target.lmfbs
+cat ${DATA_ROOT}/train.lmfbs | grep -v martial > ${DATA_ROOT}/cycle_gan/tmp.source.lmfbs
+
+echo Removing utterances shorter than 128 frames...
+python tools/cgan/remove_short_utts.py ${DATA_ROOT}/cycle_gan/tmp.target.lmfbs 128 > ${DATA_ROOT}/cycle_gan/target.lmfbs
+python tools/cgan/remove_short_utts.py ${DATA_ROOT}/cycle_gan/tmp.source.lmfbs 128 > ${DATA_ROOT}/cycle_gan/source.lmfbs
+
+echo Start training...
+skippable_mkdir ${SAVE_DIR}
+skippable_mkdir ${SAVE_DIR}/params
+cp CycleGAN-VC2/hparams.py ${SAVE_DIR}
+# If you cannot use GPU, please delete 'CUDA_VISIBLE_DEVICES=0' from the next line.
+CUDA_VISIBLE_DEVICES=0 python CycleGAN-VC2/train.py ${DATA_ROOT}/cycle_gan/source.lmfbs ${DATA_ROOT}/cycle_gan/target.lmfbs ${SAVE_DIR} | tee ${SAVE_DIR}/loss.log
+
+echo Converting features...
+skippable_mkdir ${SAVE_DIR}/feats
+# If you cannot use GPU, please delete 'CUDA_VISIBLE_DEVICES=0' from the next line.
+CUDA_VISIBLE_DEVICES=0 python CycleGAN-VC2/FeatureConvertor.py ${DATA_ROOT}/cycle_gan/source.lmfbs ${SAVE_DIR}/params/step50000.net st ${SAVE_DIR}/feats
+
+echo Making ASR training script...
+# Reparing converted features and transcription
+find ${SAVE_DIR}/feats -name *.npy > ${DATA_ROOT}/cycle_gan/converted.lmfbs
+python tools/cgan/repair.py ${DATA_ROOT}/cycle_gan/converted.lmfbs ${DATA_ROOT}/train.script > ${DATA_ROOT}/cycle_gan/converted.script
+cat ${DATA_ROOT}/train.script ${DATA_ROOT}/cycle_gan/converted.script > ASR.train.script

@@ -1,0 +1,98 @@
+#!/bin/bash -eu
+# Following this script, you can reproduce my way to preprocess Mboshi dataset.
+# About Mboshi dataset: https://arxiv.org/abs/1710.03501
+
+skippable_mkdir (){
+set +e
+mkdir ${1}
+set -e
+}
+
+echo Making root \(\'mboshi\'\) directory...
+skippable_mkdir mboshi
+cd mboshi
+
+echo Making sub-directories...
+skippable_mkdir preprocess
+
+echo Copying the dataset... "(Source paths should be modified as your environment.)"
+ORIGINAL_TRAIN_DIR=~/Downloads/mboshi-french-parallel-corpus-master/full_corpus_newsplit/train
+ORIGINAL_DEV_DIR=~/Downloads/mboshi-french-parallel-corpus-master/full_corpus_newsplit/dev
+
+skippable_mkdir train
+skippable_mkdir dev
+
+cp ${ORIGINAL_TRAIN_DIR}/*.wav train
+cp ${ORIGINAL_TRAIN_DIR}/*.mb.cleaned train
+cp ${ORIGINAL_DEV_DIR}/*.wav dev
+cp ${ORIGINAL_DEV_DIR}/*.mb.cleaned dev
+
+echo Entering \'preprocess\' directory...
+cd preprocess
+
+echo Making wav and txt list...
+ls ../train/*.wav > train.wavlist
+ls ../dev/*.wav > dev.wavlist
+ls ../train/*.mb.cleaned > train.txt
+ls ../dev/*.mb.cleaned > dev.txt
+
+echo Making feature list...
+sed "s/train/train\/lmfb/g" train.wavlist | sed "s/.wav/.npy/g" > train.lmfblist
+sed "s/dev/dev\/lmfb/g" dev.wavlist | sed "s/.wav/.npy/g" > dev.lmfblist
+sed "s/train/train\/lmfb.not_normalized/g" train.wavlist | sed "s/.wav/.htk/g" > train.not_normalized.lmfblist
+sed "s/dev/dev\/lmfb.not_normalized/g" dev.wavlist | sed "s/.wav/.htk/g" > dev.not_normalized.lmfblist
+
+echo Wav and lmfb pair for feature extraction...
+paste -d ' ' train.wavlist train.not_normalized.lmfblist > train.wav_lmfb
+paste -d ' ' dev.wavlist dev.not_normalized.lmfblist > dev.wav_lmfb
+skippable_mkdir ../train/lmfb
+skippable_mkdir ../dev/lmfb
+skippable_mkdir ../train/lmfb.not_normalized
+skippable_mkdir ../dev/lmfb.not_normalized
+
+echo Features are being extracted...
+echo -e \\tPlease make a path for HCopy "(http://htk.eng.cam.ac.uk/)"
+echo -e \\tFor example: '$ PATH="$PATH:/home/username/htk/HTKTools"'
+HCopy -T 1 -C ../../tools/hcopy.config -S train.wav_lmfb > /dev/null
+HCopy -T 1 -C ../../tools/hcopy.config -S dev.wav_lmfb > /dev/null
+
+echo Features are being normalized... "(with mean=0.0, var=1.0)"
+python ../../tools/normalize.py train.not_normalized.lmfblist ../train/lmfb 40
+python ../../tools/normalize.py dev.not_normalized.lmfblist ../dev/lmfb 40
+
+echo Making train and dev scripts...
+cat ../train/*.mb.cleaned > train.txt
+paste -d ' ' train.lmfblist train.txt > train.pre_script
+python ../../tools/add_sos_eos.py train.pre_script > train.script
+cat ../dev/*.mb.cleaned > dev.txt
+paste -d ' ' dev.lmfblist dev.txt > dev.gt
+cp train.lmfblist train.lmfbs
+cp dev.lmfblist dev.lmfbs
+
+echo Making directories in scripts full-path...
+cd ../
+HERE=$(pwd)
+cd preprocess
+mv train.script tmp.train.script
+sed "s|\.\.|$HERE|g" tmp.train.script > tmp2.train.script
+mv dev.lmfbs tmp.dev.lmfbs
+sed "s|\.\.|$HERE|g" tmp.dev.lmfbs > tmp2.dev.lmfbs
+mv train.lmfbs tmp.train.lmfbs
+sed "s|\.\.|$HERE|g" tmp.train.lmfbs > tmp2.train.lmfbs
+mv dev.gt tmp.dev.gt
+sed "s|\.\.|$HERE|g" tmp.dev.gt > tmp2.dev.gt
+
+echo Removing speaker 'C' from the training set for evaluation in speaker-open setting
+cat tmp2.train.script | grep -v martial > ../train.script
+mv tmp2.train.lmfbs ../train.lmfbs
+cat tmp2.dev.gt | grep martial > ../dev.gt
+cat tmp2.dev.lmfbs | grep martial > ../dev.lmfbs
+
+echo Getting back the original directory...
+cd ../..
+
+echo Completed! Now you have:
+echo -e \\tmboshi/train.script: "(ASR traning data)"
+echo -e \\tmboshi/dev.lmfbs: "(ASR evaluation data, and used for VC training)"
+echo -e \\tmboshi/dev.gt: "(ASR ground truth)"
+echo -e \\tmboshi/train.lmfbs: "(used for VC training)"
