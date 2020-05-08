@@ -8,10 +8,10 @@ hd = {}
 # Settings
 hd['align3'] = '{:-^30}'.format('Setting')
 hd['BATCH_SIZE'] = 5
-hd['WIDTH'] = 256
+hd['WIDTH'] = 128
 
 hd['align4'] = '{:-^25}'.format('')
-hd['STEP_NUM'] = int(3e5)
+hd['STEP_NUM'] = int(1e5)
 hd['IDT_STOP_STEP'] = int(1e4)
 hd['SAVE_PERIOD'] = 5e3
 hd['FEATURE_SIZE'] = 40
