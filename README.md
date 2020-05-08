@@ -46,7 +46,7 @@ and you can get
 - mboshi/train.lmfbs: used for Cycle-GAN training
 
 4. ~~Download or clone VC modules from [here](https://github.com/Kohei-Matsuura/CycleGAN-VC2).~~  
-(Edit: Now it contains CycleGAN-VC2 directory.)  
+(Edit on 8th May: Now it contains CycleGAN-VC2 directory.)  
 Directory structure is as below.
 ```
 Current Directory/  
