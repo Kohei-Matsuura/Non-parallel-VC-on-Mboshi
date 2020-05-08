@@ -32,7 +32,7 @@ HCopy in [HTKTools](http://htk.eng.cam.ac.uk/)
 ## Introduction
 1. Download or clone this repository
 
-2. Download mboshi dataset from [here](https://github.com/besacier/mboshi-french-parallel-corpus/tree/master/full_corpus_newsplit). What you need is 'train' and 'dev'.
+2. Download mboshi dataset from [here](https://github.com/besacier/mboshi-french-parallel-corpus/tree/master/full_corpus_newsplit). Then unzip it in your Downloads folder.
 
 3. Run 'preprocess.recipe'
 ```
