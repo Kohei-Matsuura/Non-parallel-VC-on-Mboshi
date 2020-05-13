@@ -25,7 +25,7 @@ ASR is trained with {1, 2, converted 1, converted 2} and evaluated with {6}.
 
 ## Requirements
 Python >= 3.6.0  
-tqdm
+tqdm  
 PyTorch >= 1.0  
 HCopy in [HTKTools](http://htk.eng.cam.ac.uk/) 
 (If anything else, please give me an issue.)
