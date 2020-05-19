@@ -1,6 +1,8 @@
 # Non-parallel-VC-on-Mboshi
 Following the steps explained below, you can reproduce my experiment.
 
+A paper describing this work has been submitted to Interspeech 2020 (arXiv).
+
 ## Abbreviations
 VC: Voice Conversion  
 ASR: Automatic Speech Recognition
