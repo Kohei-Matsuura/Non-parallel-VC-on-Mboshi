@@ -1,6 +1,6 @@
 # Non-parallel-VC-on-Mboshi
 Following the steps explained below, you can reproduce my experiment.  
-A paper describing this work has been submitted to Interspeech 2020 ([arXiv](https://arxiv.org/pdf/2005.09256.pdf)).
+A paper describing this work has been accepted in Interspeech 2020 ([arXiv](https://arxiv.org/pdf/2005.09256.pdf)).
 
 ## Abbreviations
 VC: Voice Conversion  
